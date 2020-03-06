@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">usb_host_test</string>
+    <string name="button">Button</string>
 </resources>

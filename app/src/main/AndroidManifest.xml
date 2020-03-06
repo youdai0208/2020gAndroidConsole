@@ -20,4 +20,5 @@
 
     <uses-feature android:name="android.hardware.usb.host" />
 
+
 </manifest>
