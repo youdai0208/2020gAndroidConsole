@@ -1,0 +1,173 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="X座標(mm)"
+                android:textSize="19dp" />
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="Y座標(mm)"
+                android:textSize="19dp" />
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="角度(deg)"
+                android:textSize="19dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/x_coordinate"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="0.0"
+                android:textSize="19dp" />
+
+            <TextView
+                android:id="@+id/y_coordinate"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="0.0"
+                android:textSize="19dp" />
+
+            <TextView
+                android:id="@+id/theta"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="0.0"
+                android:textSize="19dp" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:text="reset" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/sequence_number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Now Sequence Number"
+            android:textSize="25dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:id="@+id/selected_zone"
+                android:text="Selected Zone"
+                android:textSize="25dp" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/red_zone_button"
+                android:layout_marginLeft="50dp"
+                android:backgroundTint="#FF0000"
+                android:text="赤" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/blue_zone_button"
+                android:layout_marginLeft="10dp"
+                android:backgroundTint="#0000FF"
+                android:text="青" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/mode_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Selected Mode"
+            android:textSize="25dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/fast_manual"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="高速手動" />
+
+            <Button
+                android:id="@+id/normal_manual"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="通常手動" />
+
+            <Button
+                android:id="@+id/one_button_auto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ワンボタン" />
+
+            <Button
+                android:id="@+id/select_route_auto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ルートセレクト" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/serial_state"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/textview"
+                android:textSize="25dp" />
+
+            <Button
+                android:id="@+id/reconnect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:background="#32BAFF"
+                android:text="@string/button" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

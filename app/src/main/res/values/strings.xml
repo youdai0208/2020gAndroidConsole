@@ -1,4 +1,10 @@
 <resources>
-    <string name="app_name">usb_host_test</string>
-    <string name="button">Button</string>
+    <string name="app_name">2020g PR Console</string>
+    <string name="button">Reconnect</string>
+    <string name="description">picture</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="textview">SerialState</string>
+    <string name="button2">Button</string>
 </resources>
