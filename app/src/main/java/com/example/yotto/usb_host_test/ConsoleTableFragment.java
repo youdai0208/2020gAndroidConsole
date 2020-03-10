@@ -5,10 +5,7 @@ import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
-
-import com.hoho.android.usbserial.driver.UsbSerialDriver;
 
 import java.nio.ByteBuffer;
 
@@ -17,28 +14,19 @@ import androidx.fragment.app.Fragment;
 public class ConsoleTableFragment extends Fragment {
 
     private int send_data = 0;
-    private TextView serial_stete_text;
+    private TextView serial_state_text;
     private TextView selected_zone_text;
     private TextView x_coordinate_text;
     private TextView y_coordinate_text;
     private TextView theta_coordinate_text;
     private TextView selected_mode_text;
     private TextView sequence_number_text;
-    private Button serial_reconnect_button;
-    private Button red_zone_button;
-    private Button blue_zone_button;
-    private Button reset_button;
-    private Button fast_manual_button;
-    private Button normal_manual_button;
-    private Button one_button_mode_button;
-    private Button route_select_mode_button;
-    private UsbSerialDriver usbSerialDriver_;
     private MainActivity mainActivity;
     private final Handler handler = new Handler();
 
     static ConsoleTableFragment newInstance() {
-        ConsoleTableFragment fragment_One = new ConsoleTableFragment();
-        return fragment_One;
+        ConsoleTableFragment consoleTableFragment = new ConsoleTableFragment();
+        return consoleTableFragment;
     }
 
     @Override
@@ -59,7 +47,7 @@ public class ConsoleTableFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         mainActivity = (MainActivity) getActivity();
-        serial_stete_text = (TextView) view.findViewById(R.id.serial_state);
+        serial_state_text = (TextView) view.findViewById(R.id.serial_state);
         selected_zone_text = (TextView) view.findViewById(R.id.selected_zone);
         x_coordinate_text = (TextView) view.findViewById(R.id.x_coordinate);
         y_coordinate_text = (TextView) view.findViewById(R.id.y_coordinate);
@@ -67,13 +55,11 @@ public class ConsoleTableFragment extends Fragment {
         selected_mode_text = (TextView) view.findViewById(R.id.mode_text);
         sequence_number_text = (TextView) view.findViewById(R.id.sequence_number);
 
-//        readThread();
-
         view.findViewById(R.id.reconnect).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!mainActivity.isSerialPortActive()) {
-                    mainActivity.refrashDevice();
+                    mainActivity.refreshDevice();
                     mainActivity.onDeviceStateChange();
                 }
             }
@@ -147,7 +133,7 @@ public class ConsoleTableFragment extends Fragment {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                serial_stete_text.setText(text);
+                serial_state_text.setText(text);
             }
         });
     }
@@ -235,13 +221,6 @@ public class ConsoleTableFragment extends Fragment {
                 setSelectedZoneText("Exception: " + text);
                 break;
         }
-        if (text == "0") {
-
-        } else if (text == "1") {
-
-        } else {
-
-        }
     }
 
     public void selectMode(final String text) {
@@ -267,41 +246,4 @@ public class ConsoleTableFragment extends Fragment {
     private byte[] intToByteArray(final int value) {
         return ByteBuffer.allocate(Integer.SIZE / Byte.SIZE).putInt(value).array();
     }
-
-//    public void readThread(){
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-////                mainActivity.start_read_thread();
-//                byte[] data;
-//                while (true){
-//                    /*data = mainActivity.getBuf();
-//                    if(data.length > 7 && data.length < 100){
-//                        final String message = "Read " + data.length + " bytes: \n"
-//                                + HexDump.dumpHexString(data) + "\n\n";
-//                        handler.post(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                textView.setText(message);
-//                            }
-//                        });
-//                    }*/
-//
-//                    /*if(mainActivity.getRevieve_size() > 7){
-//                        data = mainActivity.getBuf();
-//
-//                    }*/
-//                }
-//            }
-//        }).start();
-//    }
-//
-//    public void read(final String message){
-//        handler.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                textView.setText(message);
-//            }
-//        });
-//    }
 }

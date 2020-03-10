@@ -6,23 +6,15 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity"
     android:orientation="horizontal"
-    android:weightSum="1"
     android:keepScreenOn="true">
 
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:id="@+id/fragment3" />
-
-    <!--    <Fragment-->
-    <!--        android:id="@+id/fragment3"-->
-    <!--        android:name="com.example.yotto.usb_host_test.PositionFragment"-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_height="0dp"-->
-    <!--        android:layout_weight="0.35"/>-->
+        android:id="@+id/position" />
 
     <FrameLayout
-        android:id="@+id/fragment4"
+        android:id="@+id/console"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 </LinearLayout>

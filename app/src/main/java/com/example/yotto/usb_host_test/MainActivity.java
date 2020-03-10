@@ -18,7 +18,6 @@ import com.hoho.android.usbserial.driver.*;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
@@ -29,7 +28,6 @@ import androidx.fragment.app.FragmentTransaction;
 
 public class MainActivity extends AppCompatActivity {
     private final String TAG = MainActivity.class.getSimpleName();
-    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
     private static final int MESSAGE_REFRESH = 101;
     private static final long REFRESH_TIMEOUT_MILLIS = 5000;
     private static final String INTENT_ACTION_GRANT_USB = BuildConfig.APPLICATION_ID + ".GRANT_USB";
@@ -37,8 +35,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean bcr = false;
     private byte[] responce = new byte[100];
     private int responce_counter = 0;
-    private ConsoleTableFragment fragment_One;
-    private PositionFragment positionFragment_;
+    private ConsoleTableFragment consoleTableFragment;
+    private PositionFragment positionFragment;
     private List<UsbSerialDriver> availableDrivers;
     private UsbManager manager;
     private UsbSerialDriver driver;
@@ -70,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MESSAGE_REFRESH:
-//                    refreshDeviceList();
                     mHandler.sendEmptyMessageDelayed(MESSAGE_REFRESH, REFRESH_TIMEOUT_MILLIS);
                     break;
                 default:
@@ -100,30 +97,30 @@ public class MainActivity extends AppCompatActivity {
             String[] list = message.split(",", 0);
 
             if (list.length > 5) {
-                fragment_One.setXCoordinateText(list[0]);
-                fragment_One.setYCoordinateText(list[1]);
-                fragment_One.setThetaCoordinateText(list[2]);
-                fragment_One.selectSequenceNumber(list[3]);
-                fragment_One.selectZone(list[4]);
-                fragment_One.selectMode(list[5]);
+                consoleTableFragment.setXCoordinateText(list[0]);
+                consoleTableFragment.setYCoordinateText(list[1]);
+                consoleTableFragment.setThetaCoordinateText(list[2]);
+                consoleTableFragment.selectSequenceNumber(list[3]);
+                consoleTableFragment.selectZone(list[4]);
+                consoleTableFragment.selectMode(list[5]);
 
                 switch (list[4]) {
                     case "0":
                         try {
-                            final int px = (((((int) Float.parseFloat(list[0])) / 10) + 5) - (positionFragment_.getImageWidth() / 2));
-                            final int py = ((1010 - (((int) Float.parseFloat(list[1]) / 10) + 5)) - (positionFragment_.getImageHeight() / 2));
+                            final int px = (((((int) Float.parseFloat(list[0])) / 10) + 5) - (positionFragment.getImageWidth() / 2));
+                            final int py = ((1010 - (((int) Float.parseFloat(list[1]) / 10) + 5)) - (positionFragment.getImageHeight() / 2));
                             final float th = Float.parseFloat(list[2]) * (-1);
-                            positionFragment_.movePicture(px, py, th);
+                            positionFragment.movePicture(px, py, th);
                         } catch (NumberFormatException n) {
                             n.printStackTrace();
                         }
                         break;
                     case "1":
                         try {
-                            final int px = ((1340 + (((int) Float.parseFloat(list[0]) / 10) - 5)) - (positionFragment_.getImageWidth() / 2));
-                            final int py = ((1010 - (((int) Float.parseFloat(list[1]) / 10) + 5)) - (positionFragment_.getImageHeight() / 2));
-                            final float th = Float.parseFloat(list[2]);
-                            positionFragment_.movePicture(px, py, th);
+                            final int px = ((1340 + (((int) Float.parseFloat(list[0]) / 10) - 5)) - (positionFragment.getImageWidth() / 2));
+                            final int py = ((1010 - (((int) Float.parseFloat(list[1]) / 10) + 5)) - (positionFragment.getImageHeight() / 2));
+                            final float th = Float.parseFloat(list[2]) * (-1);
+                            positionFragment.movePicture(px, py, th);
                         } catch (NumberFormatException n) {
                             n.printStackTrace();
                         }
@@ -131,15 +128,8 @@ public class MainActivity extends AppCompatActivity {
                     default:
                         break;
                 }
-
-
-//                fragment_two.movePicture(((460 + 5)-(fragment_two.getImageWidth() / 2)), (((1010 - (50 + 5)))-(fragment_two.getImageHeight() / 2)), -90);
             }
-//            fragment_1.setSequenceNumberText(message);
         }
-
-//        final String message = HexDump.dumpHexString(data);
-
     }
 
     @Override
@@ -147,11 +137,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (this.fragment_One == null) {
-            this.fragment_One = ConsoleTableFragment.newInstance();
+        if (this.consoleTableFragment == null) {
+            this.consoleTableFragment = ConsoleTableFragment.newInstance();
         }
-        if (this.positionFragment_ == null) {
-            this.positionFragment_ = PositionFragment.newInstance();
+        if (this.positionFragment == null) {
+            this.positionFragment = PositionFragment.newInstance();
         }
     }
 
@@ -161,15 +151,14 @@ public class MainActivity extends AppCompatActivity {
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
-        transaction.add(R.id.fragment4, this.fragment_One);
-        transaction.add(R.id.fragment3, this.positionFragment_);
+        transaction.add(R.id.console, this.consoleTableFragment);
+        transaction.add(R.id.position, this.positionFragment);
         transaction.commit();
 
-        refrashDevice();
+        refreshDevice();
 
         onDeviceStateChange();
 
-//        startIoManager();
         mHandler.sendEmptyMessage(MESSAGE_REFRESH);
         registerReceiver(usb_receiver, new IntentFilter(INTENT_ACTION_GRANT_USB));
     }
@@ -179,8 +168,8 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        ft.remove(this.fragment_One);
-        ft.remove(this.positionFragment_);
+        ft.remove(this.consoleTableFragment);
+        ft.remove(this.positionFragment);
         ft.commit();
         if (port != null) {
             try {
@@ -195,14 +184,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void refrashDevice() {
+    public void refreshDevice() {
         stopIoManager();
         manager = (UsbManager) getSystemService(Context.USB_SERVICE);
-
-
-//        UsbSerialProber usbDefaultProber = UsbSerialProber.getDefaultProber();
-//        UsbSerialProber usbCustomProber = CustomProber.getCustomProber();
-
 
         ProbeTable customTable = new ProbeTable();
         customTable.addProduct(0x0483, 0x374b, CdcAcmSerialDriver.class);
@@ -210,7 +194,7 @@ public class MainActivity extends AppCompatActivity {
         availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager);
         if (availableDrivers.isEmpty()) {
             Toast.makeText(this, "No device", Toast.LENGTH_SHORT).show();
-            fragment_One.setSerialStateText("No device");
+            consoleTableFragment.setSerialStateText("No device");
             availableDrivers = prober.findAllDrivers(manager);
         }
 
@@ -222,9 +206,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(INTENT_ACTION_GRANT_USB)) {
-                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-//                        showSerialActivity(usb_serial_port);
-                    } else {
+                    if (!intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                         Toast.makeText(context, "USB permission denied", Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -236,8 +218,7 @@ public class MainActivity extends AppCompatActivity {
         connection = manager.openDevice(driver.getDevice());
         UsbDevice usbDevice = driver.getDevice();
         if (connection == null) {
-            // add UsbManager.requestPermission(driver.getDevice(), ..) handling here
-            PendingIntent usbPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(INTENT_ACTION_GRANT_USB), 0);
+            PendingIntent usbPermissionIntent = PendingIntent.getBroadcast(MainActivity.this, 0, new Intent(INTENT_ACTION_GRANT_USB), 0);
             manager.requestPermission(usbDevice, usbPermissionIntent);
             return;
         }
@@ -246,8 +227,8 @@ public class MainActivity extends AppCompatActivity {
         try {
             port.open(connection);
             port.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
-            fragment_One.setSerialStateText(port.getClass().getSimpleName());
-            Toast.makeText(this, "Device connected", Toast.LENGTH_SHORT).show();
+            consoleTableFragment.setSerialStateText(port.getDriver().getDevice().getDeviceName());
+            Toast.makeText(MainActivity.this, "Device connected", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -266,7 +247,6 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG, "Starting io manager ..");
             serial_io_manager = new SerialInputOutputManager(port, mListener);
             serial_io_manager.setReadTimeout(100);
-//            mExecutor.submit(serial_io_manager);
             Executors.newSingleThreadExecutor().submit(serial_io_manager);
         }
     }
@@ -299,17 +279,5 @@ public class MainActivity extends AppCompatActivity {
             result = false;
         }
         return result;
-    }
-
-    public static String bin2hex(byte[] data) {
-        StringBuffer sb = new StringBuffer();
-        for (byte b : data) {
-            String s = Integer.toHexString(0xff & b);
-            if (s.length() == 1) {
-                sb.append("0");
-            }
-            sb.append(s);
-        }
-        return sb.toString();
     }
 }
