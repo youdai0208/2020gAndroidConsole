@@ -37,7 +37,7 @@ public class SerialInputOutputManager implements Runnable {
 
     private static final String TAG = SerialInputOutputManager.class.getSimpleName();
     private static final boolean DEBUG = true;
-    private static final int BUFSIZ = 4096;
+    private static final int BUFSIZ = 8192;
 
     /**
      * default read timeout is infinite, to avoid data loss with bulkTransfer API

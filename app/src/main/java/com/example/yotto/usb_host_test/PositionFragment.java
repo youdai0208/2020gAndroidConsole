@@ -1,11 +1,8 @@
 package com.example.yotto.usb_host_test;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -14,7 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-public class Fragment_two extends Fragment implements View.OnTouchListener {
+public class PositionFragment extends Fragment /*implements View.OnTouchListener*/ {
 
     private CustomImageView cImageView;
     private ImageView imageView;
@@ -24,9 +21,9 @@ public class Fragment_two extends Fragment implements View.OnTouchListener {
     private final int picture_origin_x = 5, picture_origin_y = (1010 - 50 + 110);
     private TextView textView;
 
-    static Fragment_two newInstance() {
-        Fragment_two fragment_two = new Fragment_two();
-        return fragment_two;
+    static PositionFragment newInstance() {
+        PositionFragment positionFragment_ = new PositionFragment();
+        return positionFragment_;
     }
 
 
@@ -53,10 +50,10 @@ public class Fragment_two extends Fragment implements View.OnTouchListener {
         imageView = (ImageView) view.findViewById(R.id.base_image);
         cImageView = view.findViewById(R.id.image_view);
 
-        cImageView.setOnTouchListener(this);
+//        cImageView.setOnTouchListener(this);
     }
 
-    @Override
+    /*@Override
     public boolean onTouch(View v, MotionEvent event) {
         // x,y 位置取得
         int newDx = (int) event.getRawX();
@@ -100,7 +97,7 @@ public class Fragment_two extends Fragment implements View.OnTouchListener {
         preDy = newDy;
 
         return true;
-    }
+    }*/
 
     public void movePicture(final int pre_dx, final int pre_dy, final float pre_th) {
         int x = cImageView.getWidth() + (pre_dx - preDx);
@@ -112,7 +109,11 @@ public class Fragment_two extends Fragment implements View.OnTouchListener {
         cImageView.layout(pre_dx, pre_dy, imgW, imgH);
     }
 
-    public void placeInit() {
-        int viewWidth = imageView.getMeasuredWidth();
+    public int getImageWidth() {
+        return cImageView.getWidth();
+    }
+
+    public int getImageHeight() {
+        return cImageView.getHeight();
     }
 }

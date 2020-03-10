@@ -9,12 +9,14 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
-import com.hoho.android.usbserial.util.HexDump;
+
+import java.nio.ByteBuffer;
 
 import androidx.fragment.app.Fragment;
 
-public class Fragment_1 extends Fragment {
+public class ConsoleTableFragment extends Fragment {
 
+    private int send_data = 0;
     private TextView serial_stete_text;
     private TextView selected_zone_text;
     private TextView x_coordinate_text;
@@ -34,9 +36,9 @@ public class Fragment_1 extends Fragment {
     private MainActivity mainActivity;
     private final Handler handler = new Handler();
 
-    static Fragment_1 newInstance() {
-        Fragment_1 fragment_1 = new Fragment_1();
-        return fragment_1;
+    static ConsoleTableFragment newInstance() {
+        ConsoleTableFragment fragment_One = new ConsoleTableFragment();
+        return fragment_One;
     }
 
     @Override
@@ -70,8 +72,73 @@ public class Fragment_1 extends Fragment {
         view.findViewById(R.id.reconnect).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.refrashDevice();
-                mainActivity.onDeviceStateChange();
+                if (!mainActivity.isSerialPortActive()) {
+                    mainActivity.refrashDevice();
+                    mainActivity.onDeviceStateChange();
+                }
+            }
+        });
+
+        view.findViewById(R.id.reset).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                send_data = 1;
+                mainActivity.writeThread(intToByteArray(send_data), 100);
+                send_data = 0;
+            }
+        });
+
+        view.findViewById(R.id.red_zone_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                send_data = 2;
+                mainActivity.writeThread(intToByteArray(send_data), 100);
+                send_data = 0;
+            }
+        });
+
+        view.findViewById(R.id.blue_zone_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                send_data = 3;
+                mainActivity.writeThread(intToByteArray(send_data), 100);
+                send_data = 0;
+            }
+        });
+
+        view.findViewById(R.id.fast_manual).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                send_data = 4;
+                mainActivity.writeThread(intToByteArray(send_data), 100);
+                send_data = 0;
+            }
+        });
+
+        view.findViewById(R.id.normal_manual).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                send_data = 5;
+                mainActivity.writeThread(intToByteArray(send_data), 100);
+                send_data = 0;
+            }
+        });
+
+        view.findViewById(R.id.one_button_auto).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                send_data = 6;
+                mainActivity.writeThread(intToByteArray(send_data), 100);
+                send_data = 0;
+            }
+        });
+
+        view.findViewById(R.id.select_route_auto).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                send_data = 7;
+                mainActivity.writeThread(intToByteArray(send_data), 100);
+                send_data = 0;
             }
         });
     }
@@ -195,6 +262,10 @@ public class Fragment_1 extends Fragment {
                 setSelectedModeText("Exception: " + text);
                 break;
         }
+    }
+
+    private byte[] intToByteArray(final int value) {
+        return ByteBuffer.allocate(Integer.SIZE / Byte.SIZE).putInt(value).array();
     }
 
 //    public void readThread(){
