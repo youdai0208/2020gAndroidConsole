@@ -17,8 +17,12 @@ import android.widget.Toast;
 import com.hoho.android.usbserial.driver.*;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
@@ -27,14 +31,25 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 public class MainActivity extends AppCompatActivity {
+    /*定数群*/
     private final String TAG = MainActivity.class.getSimpleName();
+    private final String RED_ZONE = "0";
+    private final String BLUE_ZONE = "1";
+    private final int NEED_ELEMENT_COUNT = 5;
+    private final int MAGNIFICATION = 10;
+    private final int FIELD_HIGHT = 1010;
+    private final int FIELD_WIDTH = 1340;
+    private final int FENCE_THICKNESS = 5;
     private static final int MESSAGE_REFRESH = 101;
     private static final long REFRESH_TIMEOUT_MILLIS = 5000;
     private static final String INTENT_ACTION_GRANT_USB = BuildConfig.APPLICATION_ID + ".GRANT_USB";
 
+    /*変数群*/
     private boolean bcr = false;
-    private byte[] responce = new byte[100];
+    private byte[] responce = new byte[256];
     private int responce_counter = 0;
+    private int py_test = 750;
+    /*オブジェクト群*/
     private ConsoleTableFragment consoleTableFragment;
     private PositionFragment positionFragment;
     private List<UsbSerialDriver> availableDrivers;
@@ -44,7 +59,10 @@ public class MainActivity extends AppCompatActivity {
     private UsbSerialPort port;
     private SerialInputOutputManager serial_io_manager;
     private BroadcastReceiver usb_receiver;
+    private Pattern pattern = Pattern.compile("[-+]?[0-9]*\\.?[0-9]+");
+//    private Matcher matcher;
 
+    /*受信コールバックの設定部分*/
     private final SerialInputOutputManager.Listener mListener =
             new SerialInputOutputManager.Listener() {
                 @Override
@@ -63,11 +81,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
 
+    /*よく分からないが飛ばすと止まるので残してる*/
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MESSAGE_REFRESH:
+//                    refreshDevice();
                     mHandler.sendEmptyMessageDelayed(MESSAGE_REFRESH, REFRESH_TIMEOUT_MILLIS);
                     break;
                 default:
@@ -78,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
 
     };
 
+    /*受信コールバック関数*/
     private void updateReceivedData(byte[] data) {
         for (int i = 0; i < data.length; i++) {
             responce[responce_counter] = data[i];
@@ -94,9 +115,10 @@ public class MainActivity extends AppCompatActivity {
             responce_counter = 0;
 
             final String message = new String(responce);
-            String[] list = message.split(",", 0);
+            final String[] list = message.split(",", 0);
 
-            if (list.length > 5) {
+            if (list.length > NEED_ELEMENT_COUNT) {
+                String[] coordinate = new String[3];
                 consoleTableFragment.setXCoordinateText(list[0]);
                 consoleTableFragment.setYCoordinateText(list[1]);
                 consoleTableFragment.setThetaCoordinateText(list[2]);
@@ -104,22 +126,29 @@ public class MainActivity extends AppCompatActivity {
                 consoleTableFragment.selectZone(list[4]);
                 consoleTableFragment.selectMode(list[5]);
 
+                for (int i = 0; i < coordinate.length; ++i) {
+                    Matcher matcher = pattern.matcher(list[i]);
+                    if (matcher.find()) {
+                        coordinate[i] = matcher.group();
+                    }
+                }
+
                 switch (list[4]) {
-                    case "0":
+                    case RED_ZONE:
                         try {
-                            final int px = (((((int) Float.parseFloat(list[0])) / 10) + 5) - (positionFragment.getImageWidth() / 2));
-                            final int py = ((1010 - (((int) Float.parseFloat(list[1]) / 10) + 5)) - (positionFragment.getImageHeight() / 2));
-                            final float th = Float.parseFloat(list[2]) * (-1);
+                            final int px = ((((int) Float.parseFloat(coordinate[0]) / MAGNIFICATION) + FENCE_THICKNESS) - (positionFragment.getImageWidth() / 2));
+                            final int py = ((FIELD_HIGHT - (((int) Float.parseFloat(coordinate[1]) / MAGNIFICATION) + FENCE_THICKNESS)) - (positionFragment.getImageHeight() / 2));
+                            final float th = Float.parseFloat(coordinate[2]) * (-1.00f);
                             positionFragment.movePicture(px, py, th);
                         } catch (NumberFormatException n) {
                             n.printStackTrace();
                         }
                         break;
-                    case "1":
+                    case BLUE_ZONE:
                         try {
-                            final int px = ((1340 + (((int) Float.parseFloat(list[0]) / 10) - 5)) - (positionFragment.getImageWidth() / 2));
-                            final int py = ((1010 - (((int) Float.parseFloat(list[1]) / 10) + 5)) - (positionFragment.getImageHeight() / 2));
-                            final float th = Float.parseFloat(list[2]) * (-1);
+                            final int px = ((FIELD_WIDTH + (((int) Float.parseFloat(coordinate[0]) / MAGNIFICATION) - FENCE_THICKNESS)) - (positionFragment.getImageWidth() / 2));
+                            final int py = ((FIELD_HIGHT - (((int) Float.parseFloat(coordinate[1]) / MAGNIFICATION) + FENCE_THICKNESS)) - (positionFragment.getImageHeight() / 2));
+                            final float th = Float.parseFloat(coordinate[2]) * (-1.00f);
                             positionFragment.movePicture(px, py, th);
                         } catch (NumberFormatException n) {
                             n.printStackTrace();
@@ -128,6 +157,8 @@ public class MainActivity extends AppCompatActivity {
                     default:
                         break;
                 }
+
+//                consoleTableFragment.selectSequenceNumber(list[3]);
             }
         }
     }
@@ -181,7 +212,18 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+    }
 
+    public void connectedRefresh() {
+        stopIoManager();
+        ProbeTable customTable = new ProbeTable();
+        customTable.addProduct(0x0483, 0x374b, CdcAcmSerialDriver.class);
+        UsbSerialProber prober = new UsbSerialProber(customTable);
+        availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager);
+        if (availableDrivers.isEmpty()) {
+            prober = new UsbSerialProber(customTable);
+            availableDrivers = prober.findAllDrivers(manager);
+        }
     }
 
     public void refreshDevice() {
@@ -226,8 +268,8 @@ public class MainActivity extends AppCompatActivity {
         port = driver.getPorts().get(0); // Most devices have just one port (port 0)
         try {
             port.open(connection);
-            port.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
-            consoleTableFragment.setSerialStateText(port.getDriver().getDevice().getDeviceName());
+            port.setParameters(115200, UsbSerialPort.DATABITS_8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
+            consoleTableFragment.setSerialStateText(usbDevice.getProductName());
             Toast.makeText(MainActivity.this, "Device connected", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
@@ -261,8 +303,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    if (port != null) {
-                        final int write = port.write(send_data, time_out);
+                    if (port != null && send_data != null) {
+                        while (port.write(send_data, time_out) < send_data.length) ;
+//                        final int write = port.write(send_data, time_out);
+//                        final int write2 = port.write(send_data, time_out);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
