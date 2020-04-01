@@ -1,5 +1,6 @@
 package com.example.yotto.usb_host_test;
 
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -40,15 +41,15 @@ public class MainActivity extends AppCompatActivity {
     private final int FIELD_HIGHT = 1010;
     private final int FIELD_WIDTH = 1340;
     private final int FENCE_THICKNESS = 5;
+    private final int SERIAL_BUNDRATE = 115200;
     private static final int MESSAGE_REFRESH = 101;
-    private static final long REFRESH_TIMEOUT_MILLIS = 5000;
+    private static final long REFRESH_TIMEOUT_MILLIS = 2500;
     private static final String INTENT_ACTION_GRANT_USB = BuildConfig.APPLICATION_ID + ".GRANT_USB";
 
     /*変数群*/
     private boolean bcr = false;
     private byte[] responce = new byte[256];
     private int responce_counter = 0;
-    private int py_test = 750;
     /*オブジェクト群*/
     private ConsoleTableFragment consoleTableFragment;
     private PositionFragment positionFragment;
@@ -60,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
     private SerialInputOutputManager serial_io_manager;
     private BroadcastReceiver usb_receiver;
     private Pattern pattern = Pattern.compile("[-+]?[0-9]*\\.?[0-9]+");
-//    private Matcher matcher;
 
     /*受信コールバックの設定部分*/
     private final SerialInputOutputManager.Listener mListener =
@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MESSAGE_REFRESH:
-//                    refreshDevice();
+                    connectedRefresh();
                     mHandler.sendEmptyMessageDelayed(MESSAGE_REFRESH, REFRESH_TIMEOUT_MILLIS);
                     break;
                 default:
@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
             responce[responce_counter] = data[i];
             responce_counter++;
 
-            if (data[i] == '\n') {
+            if ((data[i] == '\n') || (data[i] == '\r')) {
                 bcr = true;
                 break;
             }
@@ -133,32 +133,35 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
+                final boolean is_not_null = ((coordinate[0] != null) && (coordinate[1] != null) && (coordinate[2] != null));
                 switch (list[4]) {
                     case RED_ZONE:
-                        try {
-                            final int px = ((((int) Float.parseFloat(coordinate[0]) / MAGNIFICATION) + FENCE_THICKNESS) - (positionFragment.getImageWidth() / 2));
-                            final int py = ((FIELD_HIGHT - (((int) Float.parseFloat(coordinate[1]) / MAGNIFICATION) + FENCE_THICKNESS)) - (positionFragment.getImageHeight() / 2));
-                            final float th = Float.parseFloat(coordinate[2]) * (-1.00f);
-                            positionFragment.movePicture(px, py, th);
-                        } catch (NumberFormatException n) {
-                            n.printStackTrace();
+                        if (is_not_null) {
+                            try {
+                                final int px = ((((int) Float.parseFloat(coordinate[0]) / MAGNIFICATION) + FENCE_THICKNESS) - (positionFragment.getImageWidth() / 2));
+                                final int py = ((FIELD_HIGHT - (((int) Float.parseFloat(coordinate[1]) / MAGNIFICATION) + FENCE_THICKNESS)) - (positionFragment.getImageHeight() / 2));
+                                final float th = Float.parseFloat(coordinate[2]) * (-1.00f);
+                                positionFragment.movePicture(px, py, th);
+                            } catch (NumberFormatException n) {
+                                n.printStackTrace();
+                            }
                         }
                         break;
                     case BLUE_ZONE:
-                        try {
-                            final int px = ((FIELD_WIDTH + (((int) Float.parseFloat(coordinate[0]) / MAGNIFICATION) - FENCE_THICKNESS)) - (positionFragment.getImageWidth() / 2));
-                            final int py = ((FIELD_HIGHT - (((int) Float.parseFloat(coordinate[1]) / MAGNIFICATION) + FENCE_THICKNESS)) - (positionFragment.getImageHeight() / 2));
-                            final float th = Float.parseFloat(coordinate[2]) * (-1.00f);
-                            positionFragment.movePicture(px, py, th);
-                        } catch (NumberFormatException n) {
-                            n.printStackTrace();
+                        if (is_not_null) {
+                            try {
+                                final int px = ((FIELD_WIDTH + (((int) Float.parseFloat(coordinate[0]) / MAGNIFICATION) - FENCE_THICKNESS)) - (positionFragment.getImageWidth() / 2));
+                                final int py = ((FIELD_HIGHT - (((int) Float.parseFloat(coordinate[1]) / MAGNIFICATION) + FENCE_THICKNESS)) - (positionFragment.getImageHeight() / 2));
+                                final float th = Float.parseFloat(coordinate[2]) * (-1.00f);
+                                positionFragment.movePicture(px, py, th);
+                            } catch (NumberFormatException n) {
+                                n.printStackTrace();
+                            }
                         }
                         break;
                     default:
                         break;
                 }
-
-//                consoleTableFragment.selectSequenceNumber(list[3]);
             }
         }
     }
@@ -215,14 +218,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void connectedRefresh() {
-        stopIoManager();
         ProbeTable customTable = new ProbeTable();
         customTable.addProduct(0x0483, 0x374b, CdcAcmSerialDriver.class);
         UsbSerialProber prober = new UsbSerialProber(customTable);
         availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager);
         if (availableDrivers.isEmpty()) {
-            prober = new UsbSerialProber(customTable);
             availableDrivers = prober.findAllDrivers(manager);
+            if (availableDrivers.isEmpty()) {
+                finish();
+            }
         }
     }
 
@@ -268,7 +272,7 @@ public class MainActivity extends AppCompatActivity {
         port = driver.getPorts().get(0); // Most devices have just one port (port 0)
         try {
             port.open(connection);
-            port.setParameters(115200, UsbSerialPort.DATABITS_8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
+            port.setParameters(SERIAL_BUNDRATE, UsbSerialPort.DATABITS_8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
             consoleTableFragment.setSerialStateText(usbDevice.getProductName());
             Toast.makeText(MainActivity.this, "Device connected", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {

@@ -66,15 +66,15 @@ public class ConsoleTableFragment extends Fragment {
         selected_mode_text = (TextView) view.findViewById(R.id.mode_text);
         sequence_number_text = (TextView) view.findViewById(R.id.sequence_number);
 
-        view.findViewById(R.id.reconnect).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!mainActivity.isSerialPortActive()) {
-                    mainActivity.refreshDevice();
-                    mainActivity.onDeviceStateChange();
-                }
-            }
-        });
+//        view.findViewById(R.id.reconnect).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (!mainActivity.isSerialPortActive()) {
+//                    mainActivity.refreshDevice();
+//                    mainActivity.onDeviceStateChange();
+//                }
+//            }
+//        });
 
         view.findViewById(R.id.reset).setOnClickListener(new View.OnClickListener() {
             @Override
